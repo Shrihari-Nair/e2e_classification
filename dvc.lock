@@ -1,0 +1,117 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/generic_classifier/pipeline/stage_01_data_ingestion.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: d38422834be121ae966e2c131be5e9b3
+      size: 807
+    - path: src/generic_classifier/pipeline/stage_01_data_ingestion.py
+      hash: md5
+      md5: 1cf6123de7aff9c93a6364ede6563a56
+      size: 918
+    outs:
+    - path: artifacts/data_ingestion/real_or_fake_face
+      hash: md5
+      md5: 95d4baa2726c7df6e576f46c729a2a6a.dir
+      size: 22580172
+      nfiles: 200
+  prepare_base_model:
+    cmd: python src/generic_classifier/pipeline/stage_02_prepare_base_model.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: d38422834be121ae966e2c131be5e9b3
+      size: 807
+    - path: src/generic_classifier/pipeline/stage_02_prepare_base_model.py
+      hash: md5
+      md5: 8dc41b23e6b902428f021456a42e076e
+      size: 1009
+    params:
+      params.yaml:
+        CLASSES: 2
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+        INCLUDE_TOP: false
+        LEARNING_RATE: 0.01
+        WEIGHTS: imagenet
+    outs:
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: 68c6cefdef9d22a2266a2451b1c73b8f.dir
+      size: 118056533
+      nfiles: 2
+  training:
+    cmd: python src/generic_classifier/pipeline/stage_03_training.py
+    deps:
+    - path: artifacts/data_ingestion/real_or_fake_face
+      hash: md5
+      md5: 95d4baa2726c7df6e576f46c729a2a6a.dir
+      size: 22580172
+      nfiles: 200
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: 68c6cefdef9d22a2266a2451b1c73b8f.dir
+      size: 118056533
+      nfiles: 2
+    - path: config/config.yaml
+      hash: md5
+      md5: d38422834be121ae966e2c131be5e9b3
+      size: 807
+    - path: src/generic_classifier/components/prepare_callbacks.py
+      hash: md5
+      md5: 6750c2ea9b29c241c03767ae3393a472
+      size: 1013
+    - path: src/generic_classifier/pipeline/stage_03_training.py
+      hash: md5
+      md5: fa01a0977a65000a130d029fa33dbe1f
+      size: 1271
+    params:
+      params.yaml:
+        AUGMENTATION: true
+        BATCH_SIZE: 16
+        EPOCHS: 1
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+    outs:
+    - path: artifacts/training/model.keras
+      hash: md5
+      md5: 6c84d40bc688a9a911b30a523087587d
+      size: 59133303
+  evaluation:
+    cmd: python src/generic_classifier/pipeline/stage_04_evaluation.py
+    deps:
+    - path: artifacts/data_ingestion/real_or_fake_face
+      hash: md5
+      md5: 95d4baa2726c7df6e576f46c729a2a6a.dir
+      size: 22580172
+      nfiles: 200
+    - path: artifacts/training/model.keras
+      hash: md5
+      md5: 6c84d40bc688a9a911b30a523087587d
+      size: 59133303
+    - path: config/config.yaml
+      hash: md5
+      md5: d38422834be121ae966e2c131be5e9b3
+      size: 807
+    - path: src/generic_classifier/pipeline/stage_04_evaluation.py
+      hash: md5
+      md5: 7566c0183cac41bb39bdb375128ce9af
+      size: 883
+    params:
+      params.yaml:
+        BATCH_SIZE: 16
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+    outs:
+    - path: scores.json
+      hash: md5
+      md5: f246789877b2238a7872b04bb94ebe70
+      size: 58
